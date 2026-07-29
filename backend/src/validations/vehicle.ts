@@ -13,3 +13,13 @@ export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export const formatCreateVehicleValidationErrors = (errors: z.ZodIssue[]): string => {
   return errors.map((error) => error.message).join(', ');
 };
+
+export const searchVehicleQuerySchema = z.object({
+  make: z.string().optional(),
+  model: z.string().optional(),
+  category: z.string().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+});
+
+export type SearchVehicleQuery = z.infer<typeof searchVehicleQuerySchema>;
