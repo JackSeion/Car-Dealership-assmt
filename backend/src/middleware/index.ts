@@ -4,8 +4,13 @@ export const notFound = (req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({ message: 'Not Found' });
 };
 
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (err: unknown, req: Request, res: Response, next: NextFunction) => {
   // minimal error handler for tests; no business logic implemented
-  const status = err.status || 500;
-  res.status(status).json({ message: err.message || 'Internal Server Error' });
+  if (err && typeof err === 'object' && 'status' in err) {
+    const e = err as { status?: number; message?: string };
+    const status = e.status || 500;
+    return res.status(status).json({ message: e.message || 'Internal Server Error' });
+  }
+
+  return res.status(500).json({ message: 'Internal Server Error' });
 };
