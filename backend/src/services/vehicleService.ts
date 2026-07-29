@@ -78,3 +78,25 @@ export const deleteVehicle = async (id: string): Promise<void> => {
 
   await deleteVehicleRecord(id);
 };
+
+const buildPurchasedVehicleData = (vehicle: Vehicle): UpdateVehicleInput => ({
+  make: vehicle.make,
+  model: vehicle.model,
+  category: vehicle.category,
+  price: vehicle.price,
+  quantity: vehicle.quantity - 1,
+});
+
+export const purchaseVehicle = async (id: string): Promise<Vehicle> => {
+  const existingVehicle = await findVehicleByIdRecord(id);
+
+  if (!existingVehicle) {
+    throw createHttpError('Vehicle not found', 404);
+  }
+
+  if (existingVehicle.quantity === 0) {
+    throw createHttpError('Vehicle is out of stock', 400);
+  }
+
+  return updateVehicleRecord(id, buildPurchasedVehicleData(existingVehicle));
+};
