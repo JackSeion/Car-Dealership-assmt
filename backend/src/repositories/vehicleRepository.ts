@@ -17,6 +17,12 @@ export const updateVehicle = async (id: string, data: UpdateVehicleInput): Promi
   });
 };
 
+export const deleteVehicle = async (id: string): Promise<Vehicle> => {
+  return prisma.vehicle.delete({
+    where: { id },
+  });
+};
+
 export const listVehicles = async (): Promise<Vehicle[]> => {
   return prisma.vehicle.findMany();
 };

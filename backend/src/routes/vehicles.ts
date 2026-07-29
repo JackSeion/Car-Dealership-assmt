@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { auth } from '../middleware';
+import { auth, authorizeRoles } from '../middleware';
 import {
 	createVehicleController,
+	deleteVehicleController,
 	listVehiclesController,
 	searchVehiclesController,
 	updateVehicleController,
@@ -12,6 +13,7 @@ const router = Router();
 router.get('/search', auth, searchVehiclesController);
 router.get('/', auth, listVehiclesController);
 router.put('/:id', auth, updateVehicleController);
+router.delete('/:id', auth, authorizeRoles('ADMIN'), deleteVehicleController);
 router.post('/', auth, createVehicleController);
 
 export default router;

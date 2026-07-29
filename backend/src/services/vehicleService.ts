@@ -2,6 +2,7 @@ import { Prisma, Vehicle } from '@prisma/client';
 import { CreateVehicleInput, SearchVehicleQuery, UpdateVehicleInput } from '../validations/vehicle';
 import {
   createVehicle as createVehicleRecord,
+  deleteVehicle as deleteVehicleRecord,
   findVehicleById as findVehicleByIdRecord,
   listVehicles as listVehiclesRecord,
   searchVehicles as searchVehiclesRecord,
@@ -66,4 +67,14 @@ export const updateVehicle = async (id: string, payload: UpdateVehicleInput): Pr
   }
 
   return updateVehicleRecord(id, payload);
+};
+
+export const deleteVehicle = async (id: string): Promise<void> => {
+  const existingVehicle = await findVehicleByIdRecord(id);
+
+  if (!existingVehicle) {
+    throw createHttpError('Vehicle not found', 404);
+  }
+
+  await deleteVehicleRecord(id);
 };

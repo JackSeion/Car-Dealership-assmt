@@ -6,7 +6,7 @@ import {
   searchVehicleQuerySchema,
   updateVehicleSchema,
 } from '../validations/vehicle';
-import { createVehicle, listVehicles, searchVehicles, updateVehicle } from '../services/vehicleService';
+import { createVehicle, deleteVehicle, listVehicles, searchVehicles, updateVehicle } from '../services/vehicleService';
 import { isHttpError } from '../utils/errors';
 
 export const createVehicleController = async (req: Request, res: Response) => {
@@ -46,6 +46,22 @@ export const updateVehicleController = async (req: Request, res: Response) => {
 
     if (isHttpError(err)) {
       return res.status(err.status || 500).json({ message: err.message || 'Error' });
+    }
+
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const deleteVehicleController = async (req: Request, res: Response) => {
+  try {
+    await deleteVehicle(req.params.id);
+    return res.status(204).send();
+  } catch (err: unknown) {
+    if (isHttpError(err)) {
+      const status = err.status || 500;
+      const message = err.message || 'Error';
+
+      return res.status(status).json({ message });
     }
 
     return res.status(500).json({ message: 'Internal Server Error' });
