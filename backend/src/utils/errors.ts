@@ -3,8 +3,8 @@ export interface HttpError extends Error {
 }
 
 export const createHttpError = (message: string, status?: number): HttpError => {
-  const err = new Error(message) as HttpError;
-  if (status) err.status = status;
+  const err: HttpError = new Error(message);
+  if (status !== undefined) err.status = status;
   return err;
 };
 

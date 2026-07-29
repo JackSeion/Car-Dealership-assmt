@@ -1,16 +1,77 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
-export const notFound = (req: Request, res: Response, next: NextFunction) => {
-  res.status(404).json({ message: 'Not Found' });
+const UNAUTHORIZED_RESPONSE = { message: 'Unauthorized' };
+const NOT_FOUND_RESPONSE = { message: 'Not Found' };
+const INTERNAL_SERVER_ERROR_RESPONSE = { message: 'Internal Server Error' };
+const BEARER_PREFIX = 'Bearer ';
+
+type ErrorWithStatus = {
+  status?: number;
+  message?: string;
 };
 
-export const errorHandler = (err: unknown, req: Request, res: Response, next: NextFunction) => {
-  // minimal error handler for tests; no business logic implemented
-  if (err && typeof err === 'object' && 'status' in err) {
-    const e = err as { status?: number; message?: string };
-    const status = e.status || 500;
-    return res.status(status).json({ message: e.message || 'Internal Server Error' });
+const sendUnauthorized = (res: Response) => res.status(401).json(UNAUTHORIZED_RESPONSE);
+
+const getAuthorizationHeader = (req: Request): string | undefined => {
+  const header = req.headers.authorization;
+  return typeof header === 'string' ? header : undefined;
+};
+
+const getBearerToken = (authorizationHeader: string): string | undefined => {
+  if (!authorizationHeader.startsWith(BEARER_PREFIX)) {
+    return undefined;
   }
 
-  return res.status(500).json({ message: 'Internal Server Error' });
+  const token = authorizationHeader.slice(BEARER_PREFIX.length).trim();
+  return token.length > 0 ? token : undefined;
+};
+
+const hasStatus = (value: unknown): value is ErrorWithStatus => {
+  return !!value && typeof value === 'object' && 'status' in value;
+};
+
+export const notFound = (_req: Request, res: Response, _next: NextFunction) => {
+  res.status(404).json(NOT_FOUND_RESPONSE);
+};
+
+export const errorHandler = (err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  if (hasStatus(err)) {
+    return res.status(err.status || 500).json({ message: err.message || INTERNAL_SERVER_ERROR_RESPONSE.message });
+  }
+
+  return res.status(500).json(INTERNAL_SERVER_ERROR_RESPONSE);
+};
+
+export const auth = (req: Request, res: Response, next: NextFunction) => {
+  const authorizationHeader = getAuthorizationHeader(req);
+
+  if (!authorizationHeader) {
+    return sendUnauthorized(res);
+  }
+
+  const token = getBearerToken(authorizationHeader);
+
+  if (!token) {
+    return sendUnauthorized(res);
+  }
+
+  const JWT_SECRET = process.env.JWT_SECRET;
+
+  if (!JWT_SECRET) {
+    return sendUnauthorized(res);
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (typeof decoded === 'string') {
+      return sendUnauthorized(res);
+    }
+
+    req.user = decoded as JwtPayload;
+    return next();
+  } catch {
+    return sendUnauthorized(res);
+  }
 };
