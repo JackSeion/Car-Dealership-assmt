@@ -1,7 +1,9 @@
 import { Router } from 'express';
+import authRouter from './auth';
 
 const router = Router();
 
-// No routes yet. Controllers will be mounted here in the future.
+// Mount auth routes under /auth
+router.use('/auth', authRouter);
 
 export default router;
