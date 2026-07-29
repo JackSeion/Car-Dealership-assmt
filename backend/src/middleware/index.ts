@@ -4,6 +4,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 const UNAUTHORIZED_RESPONSE = { message: 'Unauthorized' };
 const NOT_FOUND_RESPONSE = { message: 'Not Found' };
 const INTERNAL_SERVER_ERROR_RESPONSE = { message: 'Internal Server Error' };
+const FORBIDDEN_RESPONSE = { message: 'Forbidden' };
 const BEARER_PREFIX = 'Bearer ';
 
 type ErrorWithStatus = {
@@ -12,6 +13,7 @@ type ErrorWithStatus = {
 };
 
 const sendUnauthorized = (res: Response) => res.status(401).json(UNAUTHORIZED_RESPONSE);
+const sendForbidden = (res: Response) => res.status(403).json(FORBIDDEN_RESPONSE);
 
 const getAuthorizationHeader = (req: Request): string | undefined => {
   const header = req.headers.authorization;
@@ -69,9 +71,27 @@ export const auth = (req: Request, res: Response, next: NextFunction) => {
       return sendUnauthorized(res);
     }
 
-    req.user = decoded as JwtPayload;
+    req.user = decoded as JwtPayload & { role?: string };
     return next();
   } catch {
     return sendUnauthorized(res);
   }
+};
+
+const hasAllowedRole = (role: string | undefined, allowedRoles: readonly string[]): boolean => {
+  return role !== undefined && allowedRoles.includes(role);
+};
+
+export const authorizeRoles = (...allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return sendUnauthorized(res);
+    }
+
+    if (!hasAllowedRole(req.user.role, allowedRoles)) {
+      return sendForbidden(res);
+    }
+
+    return next();
+  };
 };
