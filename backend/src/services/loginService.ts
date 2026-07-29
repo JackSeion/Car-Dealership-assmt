@@ -2,46 +2,28 @@ import { LoginInput } from '../validations/auth';
 import { findByEmail } from '../repositories/userRepository';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { createHttpError } from '../utils/errors';
 
-interface HttpError extends Error {
-  status?: number;
-}
-
-export const login = async (
-  payload: LoginInput
-): Promise<{ token: string }> => {
+export const login = async (payload: LoginInput): Promise<{ token: string }> => {
   const JWT_SECRET = process.env.JWT_SECRET;
 
   if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured');
+    throw createHttpError('JWT_SECRET is not configured',500);
   }
 
   const user = await findByEmail(payload.email);
 
   if (!user) {
-    const err = new Error('Invalid credentials') as HttpError;
-    err.status = 401;
-    throw err;
+    throw createHttpError('Invalid credentials', 401);
   }
 
   const valid = await bcrypt.compare(payload.password, user.password);
 
   if (!valid) {
-    const err = new Error('Invalid credentials') as HttpError;
-    err.status = 401;
-    throw err;
+    throw createHttpError('Invalid credentials', 401);
   }
 
-  const token = jwt.sign(
-    {
-      sub: user.id,
-      email: user.email,
-    },
-    JWT_SECRET,
-    {
-      expiresIn: '1h',
-    }
-  );
+  const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1h' });
 
   return { token };
 };
