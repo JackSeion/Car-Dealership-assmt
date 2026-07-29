@@ -10,6 +10,10 @@ export const createVehicleSchema = z.object({
 
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 
+export type UpdateVehicleInput = CreateVehicleInput;
+
+export const updateVehicleSchema = createVehicleSchema;
+
 export const formatCreateVehicleValidationErrors = (errors: z.ZodIssue[]): string => {
   return errors.map((error) => error.message).join(', ');
 };

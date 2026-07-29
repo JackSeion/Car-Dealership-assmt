@@ -1,10 +1,13 @@
 import { Prisma, Vehicle } from '@prisma/client';
-import { CreateVehicleInput, SearchVehicleQuery } from '../validations/vehicle';
+import { CreateVehicleInput, SearchVehicleQuery, UpdateVehicleInput } from '../validations/vehicle';
 import {
   createVehicle as createVehicleRecord,
+  findVehicleById as findVehicleByIdRecord,
   listVehicles as listVehiclesRecord,
   searchVehicles as searchVehiclesRecord,
+  updateVehicle as updateVehicleRecord,
 } from '../repositories/vehicleRepository';
+import { createHttpError } from '../utils/errors';
 
 export const createVehicle = async (payload: CreateVehicleInput): Promise<Vehicle> => {
   return createVehicleRecord(payload);
@@ -53,4 +56,14 @@ const buildSearchWhereClause = (query: SearchVehicleQuery): Prisma.VehicleWhereI
 
 export const searchVehicles = async (query: SearchVehicleQuery): Promise<Vehicle[]> => {
   return searchVehiclesRecord(buildSearchWhereClause(query));
+};
+
+export const updateVehicle = async (id: string, payload: UpdateVehicleInput): Promise<Vehicle> => {
+  const vehicle = await findVehicleByIdRecord(id);
+
+  if (!vehicle) {
+    throw createHttpError('Vehicle not found', 404);
+  }
+
+  return updateVehicleRecord(id, payload);
 };
