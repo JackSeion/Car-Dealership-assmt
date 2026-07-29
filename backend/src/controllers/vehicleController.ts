@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { createVehicleSchema, formatCreateVehicleValidationErrors } from '../validations/vehicle';
-import { createVehicle } from '../services/vehicleService';
+import { createVehicle, listVehicles } from '../services/vehicleService';
 
 export const createVehicleController = async (req: Request, res: Response) => {
   try {
@@ -15,4 +15,9 @@ export const createVehicleController = async (req: Request, res: Response) => {
 
     return res.status(500).json({ message: 'Internal Server Error' });
   }
+};
+
+export const listVehiclesController = async (_req: Request, res: Response) => {
+  const vehicles = await listVehicles();
+  return res.status(200).json(vehicles);
 };
