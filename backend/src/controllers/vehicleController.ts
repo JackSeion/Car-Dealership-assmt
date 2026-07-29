@@ -11,10 +11,15 @@ import {
   deleteVehicle,
   listVehicles,
   purchaseVehicle,
+  restockVehicle,
   searchVehicles,
   updateVehicle,
 } from '../services/vehicleService';
 import { isHttpError } from '../utils/errors';
+
+type RestockRequestBody = {
+  amount: number;
+};
 
 export const createVehicleController = async (req: Request, res: Response) => {
   try {
@@ -79,6 +84,23 @@ export const purchaseVehicleController = async (req: Request, res: Response) => 
   try {
     const vehicle = await purchaseVehicle(req.params.id);
     return res.status(200).json(vehicle);
+  } catch (err: unknown) {
+    if (isHttpError(err)) {
+      const status = err.status || 500;
+      const message = err.message || 'Error';
+
+      return res.status(status).json({ message });
+    }
+
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const restockVehicleController = async (req: Request, res: Response) => {
+  try {
+    const payload = req.body as RestockRequestBody;
+    const updatedVehicle = await restockVehicle(req.params.id, payload.amount);
+    return res.status(200).json(updatedVehicle);
   } catch (err: unknown) {
     if (isHttpError(err)) {
       const status = err.status || 500;

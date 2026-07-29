@@ -5,6 +5,7 @@ import {
 	deleteVehicleController,
 	listVehiclesController,
 	purchaseVehicleController,
+	restockVehicleController,
 	searchVehiclesController,
 	updateVehicleController,
 } from '../controllers/vehicleController';
@@ -15,6 +16,7 @@ router.get('/search', auth, searchVehiclesController);
 router.get('/', auth, listVehiclesController);
 router.put('/:id', auth, updateVehicleController);
 router.post('/:id/purchase', auth, purchaseVehicleController);
+router.post('/:id/restock', auth, authorizeRoles('ADMIN'), restockVehicleController);
 router.delete('/:id', auth, authorizeRoles('ADMIN'), deleteVehicleController);
 router.post('/', auth, createVehicleController);
 

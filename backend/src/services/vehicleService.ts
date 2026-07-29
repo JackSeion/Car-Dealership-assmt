@@ -100,3 +100,25 @@ export const purchaseVehicle = async (id: string): Promise<Vehicle> => {
 
   return updateVehicleRecord(id, buildPurchasedVehicleData(existingVehicle));
 };
+
+const buildRestockedVehicleData = (vehicle: Vehicle, amount: number): UpdateVehicleInput => ({
+  make: vehicle.make,
+  model: vehicle.model,
+  category: vehicle.category,
+  price: vehicle.price,
+  quantity: vehicle.quantity + amount,
+});
+
+export const restockVehicle = async (id: string, amount: number): Promise<Vehicle> => {
+  const existingVehicle = await findVehicleByIdRecord(id);
+
+  if (!existingVehicle) {
+    throw createHttpError('Vehicle not found', 404);
+  }
+
+  if (amount <= 0) {
+    throw createHttpError('Restock amount must be greater than 0', 400);
+  }
+
+  return updateVehicleRecord(id, buildRestockedVehicleData(existingVehicle, amount));
+};
