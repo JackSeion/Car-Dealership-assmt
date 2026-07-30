@@ -274,61 +274,81 @@ Backend features including authentication, vehicle CRUD, purchase, search, and r
 
 ---
 
-# 📸 Screenshots
+# 📸 Application Screenshots
 
 ## Login Page
 
-> *(Insert login.png here)*
+Secure authentication using JWT-based login.
+
+![Login Page](README-assets/login.png)
 
 ---
 
-## Vehicle Dashboard
+## Customer Dashboard
 
-> *(Insert dashboard.png here)*
+Browse all available vehicles with inventory status and purchase functionality.
 
----
-
-## Search & Filters
-
-> *(Insert search.png here)*
+![Customer Dashboard](README-assets/dashboard.png)
 
 ---
 
-## Purchase Workflow
+## Search & Advanced Filters
 
-> *(Insert purchase.png here)*
+Search vehicles by make/model and filter using category, price range, and sorting options.
+
+![Search & Filters](README-assets/search.png)
+
+---
+
+## Vehicle Purchase
+
+Purchase workflow with automatic inventory updates and disabled purchase button when a vehicle is out of stock.
+
+![Purchase Workflow](README-assets/purchase.png)
 
 ---
 
 ## Admin Dashboard
 
-> *(Insert admin-dashboard.png here)*
+Administrator dashboard providing complete vehicle inventory management.
+
+![Admin Dashboard](README-assets/admin-dashboard.png)
 
 ---
 
 ## Vehicle Restock
 
-> *(Insert restock.png here)*
+Administrators can increase inventory quantities through the secure restock workflow.
+
+![Vehicle Restock](README-assets/restock.png)
 
 ---
 
-## Database Snapshot
+## Add Vehicle
 
-> *(Insert prisma-database.png here)*
+Form used by administrators to add new vehicles to the dealership inventory.
+
+![Add Vehicle](README-assets/vehicleADD.png)
 
 ---
 
 # 📊 Test Report
 
-## Backend Tests
+The project includes comprehensive automated testing for both the backend REST API and the React frontend.
 
-> *(Insert backend-tests.png here)*
+## Backend Test Results
+
+Backend functionality is verified using **Jest** and **Supertest**, covering authentication, CRUD operations, search, purchase, authorization, and inventory management.
+
+![Backend Tests](README-assets/backend-tests.png)
 
 ---
 
-## Frontend Tests
+## Frontend Test Results
 
-> *(Insert frontend-tests.png here)*
+Frontend functionality is verified using **Vitest** and **React Testing Library**, covering dashboard rendering, search, filters, purchase workflow, admin functionality, and UI components.
+
+![Frontend Tests](README-assets/frontend-tests.png)
 
 ---
 
