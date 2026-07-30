@@ -9,6 +9,8 @@ export interface Vehicle {
 
 type VehicleCardProps = {
   vehicle: Vehicle
+  isPurchasePending?: boolean
+  onPurchase?: () => void
 }
 
 const cardClassName = 'rounded-xl border border-slate-200 bg-white p-5 shadow-sm'
@@ -29,7 +31,7 @@ const formatPrice = (price: number) =>
 const getStockMessage = (quantity: number) =>
   quantity === 0 ? 'Out of Stock' : `In Stock: ${quantity}`
 
-export default function VehicleCard({ vehicle }: VehicleCardProps) {
+export default function VehicleCard({ vehicle, isPurchasePending = false, onPurchase }: VehicleCardProps) {
   const formattedPrice = formatPrice(vehicle.price)
   const stockMessage = getStockMessage(vehicle.quantity)
   const rawVehicleDetails = [vehicle.make, vehicle.model, vehicle.price, vehicle.quantity]
@@ -47,7 +49,8 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
       </div>
       <button
         className={purchaseButtonClassName}
-        disabled={vehicle.quantity === 0}
+        disabled={vehicle.quantity === 0 || isPurchasePending}
+        onClick={onPurchase}
         type="button"
       >
         Purchase

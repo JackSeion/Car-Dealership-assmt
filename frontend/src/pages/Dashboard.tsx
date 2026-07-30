@@ -7,6 +7,7 @@ const controlsClassName = 'flex flex-col gap-4 sm:flex-row'
 const searchInputClassName = 'w-full rounded-lg border border-slate-300 px-4 py-2'
 const categorySelectClassName = 'w-full rounded-lg border border-slate-300 px-4 py-2 sm:w-56'
 const vehicleGridClassName = 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3'
+const PURCHASE_ERROR_MESSAGE = 'Unable to purchase vehicle'
 
 const filterVehicles = (vehicles: Vehicle[], searchQuery: string) => {
   const normalizedQuery = searchQuery.toLowerCase()
@@ -18,11 +19,18 @@ const filterVehicles = (vehicles: Vehicle[], searchQuery: string) => {
   )
 }
 
+const replaceVehicle = (vehicles: Vehicle[], updatedVehicle: Vehicle) =>
+  vehicles.map((vehicle) =>
+    vehicle.id === updatedVehicle.id ? updatedVehicle : vehicle
+  )
+
 export default function Dashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const [activePurchaseId, setActivePurchaseId] = useState<string | null>(null)
+  const [purchaseError, setPurchaseError] = useState('')
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -38,6 +46,24 @@ export default function Dashboard() {
 
     fetchVehicles()
   }, [])
+
+  const handlePurchase = async (vehicleId: string) => {
+    if (activePurchaseId) {
+      return
+    }
+
+    setActivePurchaseId(vehicleId)
+    setPurchaseError('')
+
+    try {
+      const { data: updatedVehicle } = await api.post<Vehicle>(`/api/vehicles/${vehicleId}/purchase`)
+      setVehicles((currentVehicles) => replaceVehicle(currentVehicles, updatedVehicle))
+    } catch {
+      setPurchaseError(PURCHASE_ERROR_MESSAGE)
+    } finally {
+      setActivePurchaseId(null)
+    }
+  }
 
   if (isLoading) {
     return <p>Loading vehicles...</p>
@@ -69,6 +95,8 @@ export default function Dashboard() {
         </select>
       </div>
 
+      {purchaseError && <p className="text-sm text-red-600">{purchaseError}</p>}
+
       {vehicles.length === 0 ? (
         <p>No vehicles available</p>
       ) : filteredVehicles.length === 0 ? (
@@ -76,7 +104,12 @@ export default function Dashboard() {
       ) : (
         <div className={vehicleGridClassName} data-testid="vehicle-grid">
           {filteredVehicles.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            <VehicleCard
+              key={vehicle.id}
+              isPurchasePending={activePurchaseId === vehicle.id}
+              onPurchase={() => handlePurchase(vehicle.id)}
+              vehicle={vehicle}
+            />
           ))}
         </div>
       )}
