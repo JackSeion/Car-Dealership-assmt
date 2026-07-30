@@ -3,10 +3,14 @@ import dotenv from 'dotenv';
 import routes from './routes';
 import { config } from './config';
 import { notFound, errorHandler } from './middleware';
-
+import cors from 'cors';
 dotenv.config();
 
 const app = express();
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 // Mount API routes (no endpoints implemented yet)
