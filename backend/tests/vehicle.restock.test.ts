@@ -46,7 +46,7 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
     const res = await request(app)
       .post(`${url}/${vehicle.id}/restock`)
       .set(createAuthHeader('ADMIN'))
-      .send({ amount: 3 });
+      .send({ quantity: 3 });
 
     expect(res.status).toBe(200);
   });
@@ -57,7 +57,7 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
     await request(app)
       .post(`${url}/${vehicle.id}/restock`)
       .set(createAuthHeader('ADMIN'))
-      .send({ amount: 3 });
+      .send({ quantity: 3 });
 
     const restockedVehicle = await prisma.vehicle.findUnique({
       where: { id: vehicle.id },
@@ -70,7 +70,7 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
     const res = await request(app)
       .post(`${url}/nonexistent-id/restock`)
       .set(createAuthHeader('ADMIN'))
-      .send({ amount: 3 });
+      .send({ quantity: 3 });
 
     expect(res.status).toBe(404);
   });
@@ -81,12 +81,12 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
     const zeroAmountRes = await request(app)
       .post(`${url}/${vehicle.id}/restock`)
       .set(createAuthHeader('ADMIN'))
-      .send({ amount: 0 });
+      .send({ quantity: 0 });
 
     const negativeAmountRes = await request(app)
       .post(`${url}/${vehicle.id}/restock`)
       .set(createAuthHeader('ADMIN'))
-      .send({ amount: -1 });
+      .send({ quantity: -1 });
 
     expect(zeroAmountRes.status).toBe(400);
     expect(negativeAmountRes.status).toBe(400);
@@ -96,7 +96,7 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
     const res = await request(app)
       .post(`${url}/nonexistent-id/restock`)
       .set(createAuthHeader('USER'))
-      .send({ amount: 3 });
+      .send({ quantity: 3 });
 
     expect(res.status).toBe(403);
   });
@@ -104,7 +104,7 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
   it('returns 401 when the Authorization header is missing', async () => {
     const res = await request(app)
       .post(`${url}/nonexistent-id/restock`)
-      .send({ amount: 3 });
+      .send({ quantity: 3 });
 
     expect(res.status).toBe(401);
   });
@@ -113,7 +113,7 @@ describe('POST /api/vehicles/:id/restock (TDD failing tests)', () => {
     const res = await request(app)
       .post(`${url}/nonexistent-id/restock`)
       .set({ authorization: 'Bearer invalid.token.here' })
-      .send({ amount: 3 });
+      .send({ quantity: 3 });
 
     expect(res.status).toBe(401);
   });

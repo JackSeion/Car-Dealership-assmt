@@ -80,6 +80,10 @@ export default function Admin() {
   const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null)
   const [formState, setFormState] = useState<VehicleFormState>(createEmptyFormState)
   const [formErrors, setFormErrors] = useState<VehicleFormErrors>({})
+  const [restockVehicleId, setRestockVehicleId] = useState<string | null>(null)
+  const [restockQuantity, setRestockQuantity] = useState('')
+  const [restockError, setRestockError] = useState('')
+  const [isRestocking, setIsRestocking] = useState(false)
 
   useEffect(() => {
     if (!isAdmin) {
@@ -108,11 +112,19 @@ export default function Admin() {
     setFormErrors({})
   }
 
+  const resetRestockForm = () => {
+    setRestockVehicleId(null)
+    setRestockQuantity('')
+    setRestockError('')
+    setIsRestocking(false)
+  }
+
   if (!isAdmin) {
     return <p>Access denied</p>
   }
 
   const openAddForm = () => {
+    resetRestockForm()
     setEditingVehicleId(null)
     setFormState(createEmptyFormState())
     setFormErrors({})
@@ -120,10 +132,39 @@ export default function Admin() {
   }
 
   const openEditForm = (vehicle: Vehicle) => {
+    resetRestockForm()
     setEditingVehicleId(vehicle.id)
     setFormState(createFormStateFromVehicle(vehicle))
     setFormErrors({})
     setIsFormOpen(true)
+  }
+
+  const openRestockForm = (vehicleId: string) => {
+    setIsFormOpen(false)
+    setEditingVehicleId(null)
+    setFormState(createEmptyFormState())
+    setFormErrors({})
+    setRestockVehicleId(vehicleId)
+    setRestockQuantity('')
+    setRestockError('')
+  }
+
+  const closeRestockForm = () => {
+    resetRestockForm()
+  }
+
+  const validateRestockQuantity = (value: string) => {
+    if (!value.trim()) {
+      return 'Quantity is required'
+    }
+
+    const quantity = Number(value)
+
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      return 'Quantity must be a positive integer'
+    }
+
+    return ''
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -153,6 +194,34 @@ export default function Admin() {
     resetForm()
   }
 
+  const handleRestockSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const quantityError = validateRestockQuantity(restockQuantity)
+    setRestockError(quantityError)
+
+    if (quantityError || !restockVehicleId) {
+      return
+    }
+
+    setIsRestocking(true)
+
+    try {
+      const response = await api.post<Vehicle>(`/api/vehicles/${restockVehicleId}/restock`, {
+        quantity: Number(restockQuantity),
+      })
+
+      setVehicles((currentVehicles) =>
+        currentVehicles.map((vehicle) => (vehicle.id === response.data.id ? response.data : vehicle))
+      )
+      closeRestockForm()
+    } catch (error: any) {
+      setRestockError(error?.response?.data?.message || 'Unable to restock vehicle')
+    } finally {
+      setIsRestocking(false)
+    }
+  }
+
   const handleDelete = async (vehicleId: string) => {
     await api.delete(`/api/vehicles/${vehicleId}`)
     setVehicles((currentVehicles) => currentVehicles.filter((vehicle) => vehicle.id !== vehicleId))
@@ -178,6 +247,35 @@ export default function Admin() {
           Add Vehicle
         </button>
       </div>
+
+      {restockVehicleId && (
+        <form className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleRestockSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-slate-700" htmlFor="restock-quantity">
+              Quantity
+            </label>
+            <input
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+              id="restock-quantity"
+              type="number"
+              value={restockQuantity}
+              onChange={(event) => {
+                setRestockQuantity(event.target.value)
+                setRestockError('')
+              }}
+            />
+          </div>
+
+          {restockError && <p className="text-sm text-red-600">{restockError}</p>}
+
+          <button className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white" disabled={isRestocking} type="submit">
+            Confirm
+          </button>
+          <button className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700" type="button" onClick={closeRestockForm}>
+            Cancel
+          </button>
+        </form>
+      )}
 
       {isFormOpen && (
         <form className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
@@ -273,9 +371,19 @@ export default function Admin() {
                 <td className="border-b border-slate-200 px-4 py-3">{vehicle.make} {vehicle.model}</td>
                 <td className="border-b border-slate-200 px-4 py-3">{vehicle.category}</td>
                 <td className="border-b border-slate-200 px-4 py-3">{formatPrice(vehicle.price)}</td>
-                <td className="border-b border-slate-200 px-4 py-3">{vehicle.quantity}</td>
+                <td className="border-b border-slate-200 px-4 py-3">
+                  {vehicle.quantity}
+                  <span className="sr-only">In Stock: {vehicle.quantity}</span>
+                </td>
                 <td className="border-b border-slate-200 px-4 py-3">
                   <div className="flex gap-2">
+                    <button
+                      className="rounded-lg border border-slate-300 px-3 py-1 text-sm font-medium"
+                      onClick={() => openRestockForm(vehicle.id)}
+                      type="button"
+                    >
+                      Restock {vehicle.make} {vehicle.model}
+                    </button>
                     <button
                       className="rounded-lg border border-slate-300 px-3 py-1 text-sm font-medium"
                       onClick={() => openEditForm(vehicle)}

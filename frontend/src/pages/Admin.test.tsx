@@ -134,6 +134,73 @@ describe('Admin Dashboard', () => {
     expect(screen.queryByText('Honda Civic')).not.toBeInTheDocument()
   })
 
+  it('renders a restock button for each vehicle', async () => {
+    renderAdmin()
+
+    expect(await screen.findByRole('button', { name: /restock toyota camry/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /restock honda civic/i })).toBeInTheDocument()
+  })
+
+  it('lets an admin restock a vehicle and updates the quantity immediately', async () => {
+    mockCreateVehicle.mockResolvedValue({ data: vehicles[0] })
+    const restockedVehicle = { ...vehicles[0], quantity: 8 }
+    mockCreateVehicle.mockResolvedValueOnce({ data: restockedVehicle })
+
+    renderAdmin()
+
+    fireEvent.click(await screen.findByRole('button', { name: /restock toyota camry/i }))
+    fireEvent.change(screen.getByLabelText(/^quantity$/i), { target: { value: '3' } })
+    fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }))
+
+    await waitFor(() => {
+      expect(mockCreateVehicle).toHaveBeenCalledWith('/api/vehicles/vehicle-1/restock', {
+        quantity: 3,
+      })
+    })
+
+    expect(await screen.findByText('In Stock: 8')).toBeInTheDocument()
+  })
+
+  it('shows validation errors for invalid restock quantity input', async () => {
+    renderAdmin()
+
+    fireEvent.click(await screen.findByRole('button', { name: /restock toyota camry/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }))
+
+    expect(screen.getByText(/quantity is required/i)).toBeInTheDocument()
+  })
+
+  it('disables confirm while the restock request is in progress', async () => {
+    let resolveRestock: ((value: { data: typeof vehicles[0] }) => void) | undefined
+    const pendingRestock = new Promise<{ data: typeof vehicles[0] }>((resolve) => {
+      resolveRestock = resolve
+    })
+
+    mockCreateVehicle.mockReturnValueOnce(pendingRestock)
+
+    renderAdmin()
+
+    fireEvent.click(await screen.findByRole('button', { name: /restock toyota camry/i }))
+    fireEvent.change(screen.getByLabelText(/^quantity$/i), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }))
+
+    expect(screen.getByRole('button', { name: /^confirm$/i })).toBeDisabled()
+
+    resolveRestock?.({ data: { ...vehicles[0], quantity: 7 } })
+  })
+
+  it('shows the backend error message when restock fails', async () => {
+    mockCreateVehicle.mockRejectedValueOnce({ response: { data: { message: 'Unable to restock vehicle' } } })
+
+    renderAdmin()
+
+    fireEvent.click(await screen.findByRole('button', { name: /restock toyota camry/i }))
+    fireEvent.change(screen.getByLabelText(/^quantity$/i), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: /^confirm$/i }))
+
+    expect(await screen.findByText(/unable to restock vehicle/i)).toBeInTheDocument()
+  })
+
   it('displays validation errors for invalid form input', async () => {
     renderAdmin()
 
@@ -155,5 +222,6 @@ describe('Admin Dashboard', () => {
 
     expect(screen.getByText(/access denied/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /add vehicle/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /restock toyota camry/i })).not.toBeInTheDocument()
   })
 })
