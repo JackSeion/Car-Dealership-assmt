@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -17,8 +18,31 @@ const vehicles = [
 ];
 
 const seed = async () => {
+  // Clear existing data
   await prisma.vehicle.deleteMany();
-  await prisma.vehicle.createMany({ data: vehicles });
+  await prisma.user.deleteMany();
+
+  // Create admin user
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+
+  await prisma.user.create({
+    data: {
+      name: 'Admin',
+      email: 'admin@example.com',
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
+  });
+
+  // Seed vehicles
+  await prisma.vehicle.createMany({
+    data: vehicles,
+  });
+
+  console.log('✅ Database seeded successfully');
+  console.log('👤 Admin Credentials:');
+  console.log('   Email: admin@example.com');
+  console.log('   Password: admin123');
 };
 
 seed()

@@ -24,15 +24,16 @@ export const login = async (payload: LoginInput): Promise<{ token: string }> => 
   }
 
   const token = jwt.sign(
-    {
-      sub: user.id,
-      email: user.email,
-    },
-    JWT_SECRET,
-    {
-      expiresIn: '1h',
-    }
-  );
+  {
+    sub: user.id,
+    email: user.email,
+    role: user.role,
+  },
+  JWT_SECRET,
+  {
+    expiresIn: '1h',
+  }
+);
 
   return { token };
 };
