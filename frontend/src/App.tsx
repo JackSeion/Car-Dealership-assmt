@@ -1,12 +1,23 @@
-import React from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import Layout from './components/layout/Layout'
+import Admin from './pages/Admin'
+import Dashboard from './pages/Dashboard'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <main className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold">Car Dealership UI (Scaffold)</h1>
-        <p className="mt-2 text-sm text-gray-600">No features implemented yet.</p>
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<Admin />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
