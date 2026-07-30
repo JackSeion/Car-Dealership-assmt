@@ -1,26 +1,6 @@
 import { useEffect, useState } from 'react'
+import VehicleCard, { type Vehicle } from '../components/vehicles/VehicleCard'
 import api from '../services/api'
-
-type Vehicle = {
-  id: string
-  make: string
-  model: string
-  category: string
-  price: number
-  quantity: number
-}
-
-type VehicleCardProps = {
-  vehicle: Vehicle
-}
-
-function VehicleCard({ vehicle }: VehicleCardProps) {
-  return (
-    <article>
-      <h2>{vehicle.make} {vehicle.model}</h2>
-    </article>
-  )
-}
 
 export default function Dashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
